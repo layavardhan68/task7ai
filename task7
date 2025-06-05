@@ -1,0 +1,41 @@
+import numpy as np
+import matplotlib.pyplot as plt
+from sklearn import datasets
+from sklearn.model_selection import train_test_split
+from sklearn.svm import SVC
+from sklearn.preprocessing import StandardScaler
+from sklearn.metrics import classification_report
+
+# Load data (only 2 features for easy plotting)
+X, y = datasets.load_breast_cancer(return_X_y=True)
+X = X[:, :2]
+
+# Train-test split & scale
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=1)
+scaler = StandardScaler()
+X_train = scaler.fit_transform(X_train)
+X_test = scaler.transform(X_test)
+
+# Train SVM with RBF kernel
+model = SVC(kernel='rbf', C=1, gamma='scale')
+model.fit(X_train, y_train)
+
+# Evaluate
+y_pred = model.predict(X_test)
+print(classification_report(y_test, y_pred))
+
+# Plot decision boundary
+def plot_boundary(clf, X, y):
+    xx, yy = np.meshgrid(
+        np.linspace(X[:,0].min()-1, X[:,0].max()+1, 300),
+        np.linspace(X[:,1].min()-1, X[:,1].max()+1, 300)
+    )
+    Z = clf.predict(np.c_[xx.ravel(), yy.ravel()]).reshape(xx.shape)
+    plt.contourf(xx, yy, Z, alpha=0.5, cmap=plt.cm.coolwarm)
+    plt.scatter(X[:,0], X[:,1], c=y, cmap=plt.cm.coolwarm, edgecolors='k')
+    plt.title("SVM with RBF Kernel")
+    plt.xlabel("Feature 1")
+    plt.ylabel("Feature 2")
+    plt.show()
+
+plot_boundary(model, X_train, y_train)
